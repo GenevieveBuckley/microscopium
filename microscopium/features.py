@@ -203,9 +203,14 @@ def object_features(bin_im, im, erode=2, sample_size=None, random_seed=None):
         sample_indices = np.arange(n_objs)
     else:
         sample_indices = random.randint(0, n_objs, size=sample_size)
-    prop_names = ['area', 'eccentricity', 'euler_number', 'extent',
-                  'min_intensity', 'mean_intensity', 'max_intensity',
-                  'solidity']
+    if im.ndim == 2:
+        prop_names = ['area', 'eccentricity', 'euler_number', 'extent',
+                      'min_intensity', 'mean_intensity', 'max_intensity',
+                      'solidity']
+    elif im.ndim == 3:
+        prop_names = ['area', 'euler_number', 'extent',
+                      'min_intensity', 'mean_intensity', 'max_intensity',
+                      'solidity']  # FYI: solidity may be very slow for 3D
     objects = measure.regionprops(lab_im, intensity_image=im)
     properties = np.empty((sample_size, len(prop_names)), dtype=np.float)
     for i, j in enumerate(sample_indices):
