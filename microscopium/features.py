@@ -189,7 +189,12 @@ def object_features(bin_im, im, erode=2, sample_size=None, random_seed=None):
         The names of each feature.
     """
     random = normalise_random_state(random_seed)
-    selem = skmorph.disk(erode)
+    if im.ndim == 2:
+        selem = skmorph.disk(erode)
+    elif im.ndim == 3:
+        selem = skmorph.ball(erode)
+    else:
+        raise ValueError(f'Unexpected number of image dimensions: {im.ndim}')
     if erode > 0:
         bin_im = nd.binary_opening(bin_im, selem)
     lab_im, n_objs = nd.label(bin_im)
@@ -349,8 +354,9 @@ def default_feature_map(image, threshold=None,
         The feature names.
     """
     all_fs, all_names = [], []
+    # process all image channels unless otherwise specified:
     if channels is None:
-        channels = image.shape[-1]  # process all channels unless specified
+        channels = range(image.shape[-1])
     images = [np.array(image[..., i]) for i in channels]
     if channel_names is None:
         channel_names = ['chan{}'.format(i) for i in channels]
