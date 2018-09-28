@@ -319,7 +319,7 @@ def nuclei_per_cell_histogram(nuc_im, cell_im, max_value=10):
 
 @tz.curry
 def default_feature_map(image, threshold=None,
-                        channels=[0, 1, 2], channel_names=None,
+                        channels=None, channel_names=None,
                         sample_size=None, random_seed=None):
     """Compute a feature vector from a multi-channel image.
 
@@ -349,6 +349,8 @@ def default_feature_map(image, threshold=None,
         The feature names.
     """
     all_fs, all_names = [], []
+    if channels is None:
+        channels = image.shape[-1]  # process all channels unless specified
     images = [np.array(image[..., i]) for i in channels]
     if channel_names is None:
         channel_names = ['chan{}'.format(i) for i in channels]
