@@ -157,17 +157,15 @@ def _column_range(series):
 
 
 def scatterplot(source, glyph_size=1, alpha_value=0.8):
-    """Display image embedding after dimensionality reduction as scatterplot.
-
+    """Display principal components analysis as bokeh scatterplotself.
     Parameters
     ----------
-    source : bokeh ColumnDataSource
+    source : ColumnDataSource
     glyph_size : size of scatter points, optional
     alpha_value : opacity of scatter points, optional
-
     Returns
     -------
-    scatterplot : bokeh figure, scatterplot of principal components analysis result
+    pca : bokeh figure, scatterplot of principal components analysis result
     """
     minx, maxx, rangex = _column_range(source.data['x'])
     miny, maxy, rangey = _column_range(source.data['y'])
@@ -178,11 +176,13 @@ def scatterplot(source, glyph_size=1, alpha_value=0.8):
     ]
     tools_scatter = ['pan, box_select, poly_select, wheel_zoom, reset']
     scatterplot = figure(title='Principal components analysis',
-        x_range=[minx - 0.05 * rangex, maxx + 0.05 * rangex],
-        y_range=[miny - 0.05 * rangey, maxy + 0.05 * rangey],
-        sizing_mode='scale_both', active_drag="box_select",
-        tools=tools_scatter, tooltips=tooltips_scatter)
-    scatterplot.circle(x='x', y='y', source=source, size=glyph_size)
+                 x_range=[minx - 0.05 * rangex, maxx + 0.05 * rangex],
+                 y_range=[miny - 0.05 * rangey, maxy + 0.05 * rangey],
+                 sizing_mode='scale_both',
+                 tools=tools_scatter,
+                 active_drag="box_select",
+                 tooltips=tooltips_scatter)
+    scatterplot.circle(source=source, x='x', y='y', size=glyph_size)
     return scatterplot
 
 
@@ -304,10 +304,10 @@ def make_makedoc(filename):
             print('new index: ', new.indices)
             # Update images & table
             if len(new.indices) == 1:  # could be empty selection
-                update_image_canvas_single(new.indices[0], data=source,
+                update_image_canvas_single(new.indices[0], data=df,
                                            source=image_holder)
             elif len(new.indices) > 1:
-                update_image_canvas_multi(new.indices, data=source,
+                update_image_canvas_multi(new.indices, data=df,
                                           source=image_holder)
             update_table(new.indices, source, table)
 
