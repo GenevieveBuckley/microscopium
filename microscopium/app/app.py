@@ -16,6 +16,7 @@ from bokeh.plotting import figure
 from bokeh.layouts import widgetbox, layout
 from bokeh.models import ColumnDataSource, CustomJS
 from bokeh.models.widgets import Button, DataTable, TableColumn
+from bokeh.palettes import brewer
 
 
 def dataframe_from_file(filename):
@@ -42,6 +43,10 @@ def imread(path):
     image0 = io.imread(path)
     if image0.ndim == 4:
         image0 = np.moveaxis(image0, 1, -1)  # expect (pln, row, col, ch)
+    shape = image0.shape[:-1]
+    while image0.shape[-1] < 3:
+        blank_channel = np.zeros((shape + (1,)), dtype='uint8')
+        image0 = np.concatenate((image0, blank_channel), axis=-1)
     if image0.shape[-1] == 3:  # RGB image
         shape = image0.shape[:-1]
         alpha = np.full((shape + (1,)), 255, dtype='uint8')
@@ -49,6 +54,25 @@ def imread(path):
     else:  # already RGBA
         image = image0
     return image
+
+
+def maximum_intensity_projection(data):
+    """Maximum intensity projection
+
+    Parameters
+    -----------
+    data : ndarray
+        Image volume, 3 spatial dimensions, plus optional channel dimensions
+
+    Returns
+    -------
+    max_projection : ndarray
+        Maximum intensity projection of image volume, 2D image plus channels
+    """
+    max_projection = np.array([np.max(data[..., channel], axis=0)
+                               for channel in range(data.shape[-1])])
+    max_projection = np.moveaxis(max_projection, 0, -1)
+    return max_projection
 
 
 def update_image_canvas_single(index, data, source):
@@ -72,6 +96,8 @@ def update_image_canvas_single(index, data, source):
     index, filename = (data[['info', 'path']]
                        .iloc[index])
     image = imread(filename)
+    if image.ndim >= 4:
+        image = maximum_intensity_projection(image)
     source.data = {'image': [image], 'x': [0], 'y': [0], 'dx': [1], 'dy': [1]}
 
 
@@ -104,6 +130,8 @@ def update_image_canvas_multi(indices, data, source, max_images=25):
     if n_images > max_images:
         filenames = filenames[:max_images - 1]
     images = [imread(fn) for fn in filenames]
+    if images[0].ndim > 3:
+        images = [maximum_intensity_projection(image) for image in images]
     if n_images > max_images:
         # from the My First Pixel Art (TM) School of Design
         dotdotdot = np.full((7, 7, 4), 255, dtype=np.uint8)
@@ -133,7 +161,7 @@ def scatterplot(source, glyph_size=1, alpha_value=0.8):
 
     Parameters
     ----------
-    source : ColumnDataSource
+    source : bokeh ColumnDataSource
     glyph_size : size of scatter points, optional
     alpha_value : opacity of scatter points, optional
 
@@ -150,13 +178,11 @@ def scatterplot(source, glyph_size=1, alpha_value=0.8):
     ]
     tools_scatter = ['pan, box_select, poly_select, wheel_zoom, reset']
     scatterplot = figure(title='Principal components analysis',
-                 x_range=[minx - 0.05 * rangex, maxx + 0.05 * rangex],
-                 y_range=[miny - 0.05 * rangey, maxy + 0.05 * rangey],
-                 sizing_mode='scale_both',
-                 tools=tools_scatter,
-                 active_drag="box_select",
-                 tooltips=tooltips_scatter)
-    scatterplot.circle(source=source, x='x', y='y', size=glyph_size)
+        x_range=[minx - 0.05 * rangex, maxx + 0.05 * rangex],
+        y_range=[miny - 0.05 * rangey, maxy + 0.05 * rangey],
+        sizing_mode='scale_both', active_drag="box_select",
+        tools=tools_scatter, tooltips=tooltips_scatter)
+    scatterplot.circle(x='x', y='y', source=source, size=glyph_size)
     return scatterplot
 
 
@@ -278,12 +304,12 @@ def make_makedoc(filename):
             print('new index: ', new.indices)
             # Update images & table
             if len(new.indices) == 1:  # could be empty selection
-                update_image_canvas_single(new.indices[0], data=df,
+                update_image_canvas_single(new.indices[0], data=source,
                                            source=image_holder)
             elif len(new.indices) > 1:
-                update_image_canvas_multi(new.indices, data=df,
+                update_image_canvas_multi(new.indices, data=source,
                                           source=image_holder)
-            update_table(new.indices, df, table)
+            update_table(new.indices, source, table)
 
         source.on_change('selected', load_selected)
         page_content = layout([
