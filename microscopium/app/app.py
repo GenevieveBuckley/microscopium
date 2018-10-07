@@ -245,10 +245,7 @@ def button_print_page():
 
 def full_table(df):
     """Display the entire dataset table (minus 'neighbors' and 'path' cols)"""
-    columns = [TableColumn(field=col, title=col)
-               for col in df.columns
-               if col not in ['neighbors', 'path']]
-    df_table = df.drop(columns=['neighbors', 'path'])
+    columns = [TableColumn(field=col, title=col) for col in df.columns]
     table_source = ColumnDataSource(df_table)
     table = DataTable(source=table_source, columns=columns, width=1200)
     return table
@@ -256,7 +253,7 @@ def full_table(df):
 
 def empty_table(df):
     """Display an empty table with column headings."""
-    col_names = [col for col in df.columns if col not in ['neighbors', 'path']]
+    col_names = [col for col in df.columns]
     table_source = ColumnDataSource(pd.DataFrame(columns=col_names))
     columns = [TableColumn(field=col, title=col) for col in col_names]
     table = DataTable(source=table_source, columns=columns, width=800)
@@ -266,8 +263,7 @@ def empty_table(df):
 def update_table(indices, df, table):
     """Update table values to show only the currently selected data."""
     # javascript csv download can't handle tuple objects in dataframe columns
-    col_names = [col for col in df.columns if col not in ['neighbors', 'path']]
-    filtered_df = df[col_names].iloc[indices]
+    filtered_df = df.iloc[indices]
     table.source.data = ColumnDataSource.from_df(filtered_df)
 
 
