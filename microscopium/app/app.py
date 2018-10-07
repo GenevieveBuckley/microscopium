@@ -291,7 +291,7 @@ def make_makedoc(filename):
         A makedoc function as expected by ``FunctionHandler``.
     """
     df = dataframe_from_file(filename)
-
+    df = df.dropna()
     def makedoc(doc):
         source = ColumnDataSource(df)
         scatter = scatterplot(source, glyph_size=10)
@@ -309,7 +309,7 @@ def make_makedoc(filename):
             elif len(new.indices) > 1:
                 update_image_canvas_multi(new.indices, data=df,
                                           source=image_holder)
-            update_table(new.indices, source, table)
+            update_table(new.indices, df, table)
 
         source.on_change('selected', load_selected)
         page_content = layout([
