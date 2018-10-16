@@ -314,21 +314,14 @@ def make_makedoc(filename, color_column=None):
             update_table(new.indices, dataframe, table)
         source.on_change('selected', load_selected)
 
-        def tap_callback():
-             print('tap tool callback function')
-             time.sleep(2)
-             OpenURL(url=url)
+        tap_callback = CustomJS(code="""
+            setTimeout(myFunction, 2000)
+            function myFunction() {
+                window.open("https://en.wikipedia.org/wiki/Main_Page");
+            }
+            """)
+        taptool.callback = tap_callback
 
-        my_callback = CustomJS(code="""
-
-        // JavaScript code goes here
-
-        window.open("https://en.wikipedia.org/wiki/Main_Page")
-
-        """)
-        taptool.callback = my_callback
-
-        source.on_change('selected', load_selected)
         page_content = layout([
             [embed, image_plot],
             controls,
