@@ -1,6 +1,9 @@
 .DS_Store
 .spyproject/
 
+tmp/*
+!.gitkeep
+
 *.py[cod]
 
 # C extensions
