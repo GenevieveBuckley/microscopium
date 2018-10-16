@@ -76,8 +76,7 @@ def update_image_canvas_single(index, data, source):
         The ``image_rgba`` data source. It must include the columns 'image',
         'x', 'y', 'dx', 'dy'.
     """
-    index, filename = (data[['info', 'path']]
-                       .iloc[index])
+    filename = data['path'].iloc[index]
     image = imread(filename)
     source.data = {'image': [image], 'x': [0], 'y': [0], 'dx': [1], 'dy': [1]}
 
@@ -127,10 +126,12 @@ def update_image_canvas_multi(indices, data, source, max_images=25):
                    'dx': step_sizes, 'dy': step_sizes}
 
 
-def volume_rendering(image_filename, image_info):
+def volume_rendering(index, data, url):
     print("Doing the volume rendering...")
-    print(str(image_filename))
-    image_3d = io.imread(image_filename)
+    filename = data['path'].iloc[index]
+    image_info = data['info'].iloc[index]
+    print(str(filename))
+    image_3d = io.imread(filename)
     image_3d = np.moveaxis(image_3d, 1, 0)
     print(image_3d.shape)
     possible_colors = ['red', 'green', 'blue', 'grey', 'cyan', 'magenta', 'yellow']
@@ -143,7 +144,6 @@ def volume_rendering(image_filename, image_info):
     ipv.volshow(image_3d[1,...])
     #for channel, color in zip(image_3d, colors):
     #    ipv.volshow(channel)
-    url = "./tmp/volume_preview.html"
     ipv.embed.embed_html(url, fig, title=image_info)
     return url
 
@@ -320,6 +320,8 @@ def make_makedoc(filename, color_column=None):
         image_plot, image_holder = selected_images()
         table = empty_table(dataframe)
         controls = [button_save_table(table), button_print_page()]
+        url_base = "/tmp/volume_preview.html"
+        url = "http://localhost:5007" + url_base
 
         def load_selected(attr, old, new):
             """Update images and table to display selected data."""
@@ -328,10 +330,7 @@ def make_makedoc(filename, color_column=None):
             if len(new.indices) == 1:  # could be empty selection
                 update_image_canvas_single(new.indices[0], data=dataframe,
                                            source=image_holder)
-                # image_filename = str()
-                # image_info = str()
-                # url_base = volume_rendering(image_filename, image_info)
-                # url = "http://localhost:5007/tmp/volume_preview.html"
+                volume_rendering(new.indices[0], url_base, data=df)
 
             elif len(new.indices) > 1:
                 update_image_canvas_multi(new.indices, data=dataframe,
@@ -339,8 +338,9 @@ def make_makedoc(filename, color_column=None):
             update_table(new.indices, dataframe, table)
         source.on_change('selected', load_selected)
 
-        wiki_url = "https://en.wikipedia.org/wiki/Main_Page"
-        tap_callback = CustomJS(args=dict(url=wiki_url), code="""
+        #base_url = "/tmp/147 Colors _ CSS Color Names.html"
+        #wiki_url = "http://localhost:5007" + base_url
+        tap_callback = CustomJS(args=dict(url=url), code="""
             setTimeout(myFunction, 2000)
             function myFunction() {
                 window.open(url);
