@@ -127,6 +127,27 @@ def update_image_canvas_multi(indices, data, source, max_images=25):
                    'dx': step_sizes, 'dy': step_sizes}
 
 
+def volume_rendering(image_filename, image_info):
+    print("Doing the volume rendering...")
+    print(str(image_filename))
+    image_3d = io.imread(image_filename)
+    image_3d = np.moveaxis(image_3d, 1, 0)
+    print(image_3d.shape)
+    possible_colors = ['red', 'green', 'blue', 'grey', 'cyan', 'magenta', 'yellow']
+    colors = possible_colors[:image_3d.shape[0]]
+    ipv.pylab.clear()
+    fig = ipv.gcf()
+    fig.vol = None
+    ipv.pylab.style.box_off()
+    ipv.pylab.style.axes_off()
+    ipv.volshow(image_3d[1,...])
+    #for channel, color in zip(image_3d, colors):
+    #    ipv.volshow(channel)
+    url = "./tmp/volume_preview.html"
+    ipv.embed.embed_html(url, fig, title=image_info)
+    return url
+
+
 def _column_range(series):
     minc = np.min(series)
     maxc = np.max(series)
@@ -307,17 +328,22 @@ def make_makedoc(filename, color_column=None):
             if len(new.indices) == 1:  # could be empty selection
                 update_image_canvas_single(new.indices[0], data=dataframe,
                                            source=image_holder)
-                volume_rendering(new.indices[0])
+                # image_filename = str()
+                # image_info = str()
+                # url_base = volume_rendering(image_filename, image_info)
+                # url = "http://localhost:5007/tmp/volume_preview.html"
+
             elif len(new.indices) > 1:
                 update_image_canvas_multi(new.indices, data=dataframe,
                                           source=image_holder)
             update_table(new.indices, dataframe, table)
         source.on_change('selected', load_selected)
 
-        tap_callback = CustomJS(code="""
+        wiki_url = "https://en.wikipedia.org/wiki/Main_Page"
+        tap_callback = CustomJS(args=dict(url=wiki_url), code="""
             setTimeout(myFunction, 2000)
             function myFunction() {
-                window.open("https://en.wikipedia.org/wiki/Main_Page");
+                window.open(url);
             }
             """)
         taptool.callback = tap_callback
