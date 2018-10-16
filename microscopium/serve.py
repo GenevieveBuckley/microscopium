@@ -9,7 +9,7 @@ import click
 from skimage import io
 import numpy as np
 import pandas as pd
-
+import ipyvolume as ipv
 from bokeh.server.server import Server
 from bokeh.application import Application
 from bokeh.application.handlers.function import FunctionHandler
@@ -137,16 +137,14 @@ def volume_rendering(index, data, url):
     possible_colors = ['red', 'green', 'blue', 'grey', 'cyan', 'magenta', 'yellow']
     colors = possible_colors[:image_3d.shape[0]]
     ipv.pylab.clear()
-    fig = ipv.gcf()
+    fig = ipv.figure()
     fig.vol = None
     ipv.pylab.style.box_off()
     ipv.pylab.style.axes_off()
     ipv.volshow(image_3d[1,...])
     #for channel, color in zip(image_3d, colors):
     #    ipv.volshow(channel)
-    ipv.embed.embed_html(url, fig, title=image_info)
-    return url
-
+    ipv.embed.embed_html('./tmp/'+url, fig, title=image_info)
 
 def _column_range(series):
     minc = np.min(series)
@@ -320,8 +318,8 @@ def make_makedoc(filename, color_column=None):
         image_plot, image_holder = selected_images()
         table = empty_table(dataframe)
         controls = [button_save_table(table), button_print_page()]
-        url_base = "/tmp/volume_preview.html"
-        url = "http://localhost:5007" + url_base
+        url_base = "volume_preview.html"
+        url = "http://localhost:5007/" + url_base
 
         def load_selected(attr, old, new):
             """Update images and table to display selected data."""
@@ -330,7 +328,7 @@ def make_makedoc(filename, color_column=None):
             if len(new.indices) == 1:  # could be empty selection
                 update_image_canvas_single(new.indices[0], data=dataframe,
                                            source=image_holder)
-                volume_rendering(new.indices[0], url_base, data=df)
+                volume_rendering(new.indices[0], data=df, url=url_base)
 
             elif len(new.indices) > 1:
                 update_image_canvas_multi(new.indices, data=dataframe,
@@ -338,10 +336,8 @@ def make_makedoc(filename, color_column=None):
             update_table(new.indices, dataframe, table)
         source.on_change('selected', load_selected)
 
-        #base_url = "/tmp/147 Colors _ CSS Color Names.html"
-        #wiki_url = "http://localhost:5007" + base_url
         tap_callback = CustomJS(args=dict(url=url), code="""
-            setTimeout(myFunction, 2000)
+            setTimeout(myFunction, 1000)
             function myFunction() {
                 window.open(url);
             }
