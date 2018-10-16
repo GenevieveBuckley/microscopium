@@ -1,5 +1,6 @@
 """This module runs the bokeh server."""
 
+import time
 from os.path import dirname, join
 from math import ceil, sqrt
 from collections import namedtuple
@@ -294,6 +295,7 @@ def make_makedoc(filename, color_column=None):
     def makedoc(doc):
         source = ColumnDataSource(dataframe)
         embed = embedding(source, glyph_size=10, color_column=color_column)
+        taptool = embed.select(TapTool)[0]
         image_plot, image_holder = selected_images()
         table = empty_table(dataframe)
         controls = [button_save_table(table), button_print_page()]
@@ -305,10 +307,26 @@ def make_makedoc(filename, color_column=None):
             if len(new.indices) == 1:  # could be empty selection
                 update_image_canvas_single(new.indices[0], data=dataframe,
                                            source=image_holder)
+                volume_rendering(new.indices[0])
             elif len(new.indices) > 1:
                 update_image_canvas_multi(new.indices, data=dataframe,
                                           source=image_holder)
             update_table(new.indices, dataframe, table)
+        source.on_change('selected', load_selected)
+
+        def tap_callback():
+             print('tap tool callback function')
+             time.sleep(2)
+             OpenURL(url=url)
+
+        my_callback = CustomJS(code="""
+
+        // JavaScript code goes here
+
+        window.open("https://en.wikipedia.org/wiki/Main_Page")
+
+        """)
+        taptool.callback = my_callback
 
         source.on_change('selected', load_selected)
         page_content = layout([
