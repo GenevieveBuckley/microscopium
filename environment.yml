@@ -13,6 +13,7 @@ dependencies:
 - pymongo=3*
 - scikit-image
 - scikit-learn
+- umap
 - scipy
 - setuptools
 - six
