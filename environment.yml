@@ -1,4 +1,7 @@
 name: mic
+channels:
+- defaults
+- conda-forge
 dependencies:
 - python=3.6*
 - click
@@ -18,6 +21,7 @@ dependencies:
 - six
 - toolz
 - imageio
+- ipyvolume
 - pip:
   - coverage>=4.0
   - pytest>=2.8
