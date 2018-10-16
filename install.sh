@@ -18,3 +18,5 @@ npm install --no-save
 cd ..
 python setup.py develop --build-js
 python -m bokeh info
+cd ../microscopium
+pip install -e .
