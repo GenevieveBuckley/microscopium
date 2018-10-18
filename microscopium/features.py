@@ -147,6 +147,7 @@ def intensity_object_features(im, threshold=None, adaptive_t_radius=51,
     """
     if threshold is None:
         tim1 = im > imfilter.threshold_otsu(im)
+        tim1 = skmorph.remove_small_objects(tim1, 64)
         f1, names1 = object_features(tim1, im, sample_size=sample_size,
                                      random_seed=random_seed)
         names1 = ['otsu-threshold-' + name for name in names1]
