@@ -10,6 +10,8 @@ from skimage import io
 import numpy as np
 import pandas as pd
 import ipyvolume as ipv
+import matplotlib.colors
+import matplotlib.cm
 from bokeh.server.server import Server
 from bokeh.application import Application
 from bokeh.application.handlers.function import FunctionHandler
@@ -28,9 +30,10 @@ def dataframe_from_file(filename):
     """Read in pandas dataframe from filename."""
     df = pd.read_csv(filename, index_col=0).set_index('index')
     df['path'] = df['url'].apply(lambda x: join(dirname(filename), x))
-    valid_x = df.x.notna()
-    valid_y = df.y.notna()
-    df = df[valid_x & valid_y]
+    valid_x = df['x'].notna()
+    valid_y = df['y'].notna()
+    valid_url = df['url'].notna()
+    df = df[valid_x & valid_y & valid_url]
     return df
 
 
@@ -126,25 +129,96 @@ def update_image_canvas_multi(indices, data, source, max_images=25):
                    'dx': step_sizes, 'dy': step_sizes}
 
 
-def volume_rendering(index, data, url):
-    print("Doing the volume rendering...")
-    filename = data['path'].iloc[index]
-    image_info = data['info'].iloc[index]
-    print(str(filename))
-    image_3d = io.imread(filename)
+def linear_transfer_function(color,
+                             min_opacity=0,
+                             max_opacity=0.05,
+                             reverse_opacity=False,
+                             n_elements = 256):
+    """Return ipyvolume transfer function of a single color and linear opacity.
+
+    Parameters
+    ----------
+    color : Listlike RGB, or string with hexidecimal or named color.
+        RGB values should be within 0-1 range.
+    min_opacity : Minimum opacity, default value is 0.0.
+        Lowest possible value is 0.0, optional. Float or integer value.
+    max_opacity : Maximum opacity, default value is 0.05.
+        Highest possible value is 1.0, optional. Float or integer value.
+    reverse_opacity : Linearly decrease opacity, optional. Boolean value.
+    n_elements : Integer length of rgba array transfer function attribute.
+
+    Returns
+    -------
+    transfer_function : ipyvolume TransferFunction
+
+    Example
+    -------
+    >>> import ipyvolume as ipv
+    >>> green_tf = linear_transfer_function('green')
+    >>> ds = ipv.datasets.aquariusA2.fetch()
+    >>> ipv.volshow(ds.data[::4,::4,::4], tf=green_tf)
+    >>> ipv.show()
+    """
+    r, g, b = matplotlib.colors.to_rgb(color)
+    opacity = np.linspace(min_opacity, max_opacity, num=n_elements)
+    if reverse_opacity:
+        opacity = np.flip(opacity, axis=0)
+    rgba = np.transpose(np.stack([[r] * n_elements,
+                                  [g] * n_elements,
+                                  [b] * n_elements,
+                                  opacity]))
+    transfer_function = ipv.transferfunction.TransferFunction(rgba=rgba)
+    return transfer_function
+
+
+def transfer_functions(colors):
+    """Create dict of linear ipyvolume transfer functions for specified colors.
+
+    Parameters
+    ----------
+    colors : List of colors in form accepted by matplotlib
+        i.e. List containing elements of any of the following:
+        1. hexidecimal strings,
+        2. named colors,
+        3. listlike RGB values. RGB values should be within 0-1 range.
+
+    Returns
+    -------
+    tf_dict : dictionary of ipyvolume transfer functions.
+        key, val = str(colorname), ipyvolume transfer function.
+    """
+    transfer_functions = [linear_transfer_function(color) for color in colors]
+    return transfer_functions
+
+
+def volume_rendering(image_filename, image_info, url, transfer_functions):
+    """3D volume rendering saved to html file with ipyvolume.
+
+    Parameters
+    ----------
+    index :
+    data :
+    url :
+    tfs :
+
+    Returns
+    -------
+
+    """
+    ipv.pylab.clear()
+    image_3d = io.imread(image_filename)
     image_3d = np.moveaxis(image_3d, 1, 0)
     print(image_3d.shape)
-    possible_colors = ['red', 'green', 'blue', 'grey', 'cyan', 'magenta', 'yellow']
-    colors = possible_colors[:image_3d.shape[0]]
-    ipv.pylab.clear()
+    #possible_colors = ['red', 'green', 'blue', 'grey', 'cyan', 'magenta', 'yellow']
+    #colors = possible_colors[:image_3d.shape[0]]
+    # should make transfer functions if none passed in
     fig = ipv.figure()
     fig.vol = None
     ipv.pylab.style.box_off()
     ipv.pylab.style.axes_off()
-    ipv.volshow(image_3d[1,...])
-    #for channel, color in zip(image_3d, colors):
-    #    ipv.volshow(channel)
-    ipv.embed.embed_html('./tmp/'+url, fig, title=image_info)
+    for channel, transfer_function in zip(image_3d, transfer_functions):
+        ipv.volshow(channel, tf=transfer_function)
+    ipv.embed.embed_html('./'+url, ipv.gcc(), title=image_info)
 
 def _column_range(series):
     minc = np.min(series)
@@ -203,10 +277,12 @@ def embedding(source, glyph_size=1, color_column='group'):
         group_names = pd.Series(source.data[color_column]).unique()
         my_colors = _palette(len(group_names))
         for i, group in enumerate(group_names):
-            group_filter = GroupFilter(column_name=color_column, group=group)
+            group_filter = GroupFilter(column_name=color_column,
+                                       group=str(group))
             view = CDSView(source=source, filters=[group_filter])
             glyphs = embed.circle(x="x", y="y", source=source, view=view,
-                                  size=10, color=my_colors[i], legend=group)
+                                  size=2, color=my_colors[i],
+                                  legend=str(group))
         embed.legend.location = "top_right"
         embed.legend.click_policy = "hide"
     else:
@@ -310,6 +386,11 @@ def make_makedoc(filename, color_column=None):
         A makedoc function as expected by ``FunctionHandler``.
     """
     dataframe = dataframe_from_file(filename)
+    volume_rendering_transfer_functions = transfer_functions(['red', 'green'])
+    image_filename = "/Users/genevieb/Documents/GitHub/Code_repositories/microscopium_data/Bertram_KidneyGlomeruli/podocytes_validation/51598/Images_51598/glom 15.tif"
+
+    #image_filename = dataframe['path'].iloc[index]
+    #image_info = data['info'].iloc[index]
 
     def makedoc(doc):
         source = ColumnDataSource(dataframe)
@@ -328,8 +409,8 @@ def make_makedoc(filename, color_column=None):
             if len(new.indices) == 1:  # could be empty selection
                 update_image_canvas_single(new.indices[0], data=dataframe,
                                            source=image_holder)
-                volume_rendering(new.indices[0], data=df, url=url_base)
-
+                volume_rendering(image_filename, "my info", url_base,
+                                 volume_rendering_transfer_functions)
             elif len(new.indices) > 1:
                 update_image_canvas_multi(new.indices, data=dataframe,
                                           source=image_holder)
@@ -337,7 +418,8 @@ def make_makedoc(filename, color_column=None):
         source.on_change('selected', load_selected)
 
         tap_callback = CustomJS(args=dict(url=url), code="""
-            setTimeout(myFunction, 1000)
+            setTimeout(myFunction, 1100);
+            console.log("clicked the button!");
             function myFunction() {
                 window.open(url);
             }
