@@ -199,7 +199,7 @@ def volume_rendering(image_filename, image_info, url, transfer_functions):
     index :
     data :
     url :
-    tfs :
+    transfer_functions :
 
     Returns
     -------
@@ -218,7 +218,7 @@ def volume_rendering(image_filename, image_info, url, transfer_functions):
     ipv.pylab.style.axes_off()
     for channel, transfer_function in zip(image_3d, transfer_functions):
         ipv.volshow(channel, tf=transfer_function)
-    ipv.embed.embed_html('./'+url, ipv.gcc(), title=image_info)
+    ipv.embed.embed_html('./tmp/'+url, ipv.gcc(), title=image_info)
 
 def _column_range(series):
     minc = np.min(series)
@@ -390,7 +390,7 @@ def make_makedoc(filename, color_column=None):
     image_filename = "/Users/genevieb/Documents/GitHub/Code_repositories/microscopium_data/Bertram_KidneyGlomeruli/podocytes_validation/51598/Images_51598/glom 15.tif"
 
     #image_filename = dataframe['path'].iloc[index]
-    #image_info = data['info'].iloc[index]
+    #image_info = dataframe['info'].iloc[index]
 
     def makedoc(doc):
         source = ColumnDataSource(dataframe)
@@ -409,6 +409,8 @@ def make_makedoc(filename, color_column=None):
             if len(new.indices) == 1:  # could be empty selection
                 update_image_canvas_single(new.indices[0], data=dataframe,
                                            source=image_holder)
+                image_filename = dataframe['path'].iloc[new.indices[0]]
+                image_info = dataframe['info'].iloc[new.indices[0]]
                 volume_rendering(image_filename, "my info", url_base,
                                  volume_rendering_transfer_functions)
             elif len(new.indices) > 1:
@@ -417,11 +419,13 @@ def make_makedoc(filename, color_column=None):
             update_table(new.indices, dataframe, table)
         source.on_change('selected', load_selected)
 
-        tap_callback = CustomJS(args=dict(url=url), code="""
-            setTimeout(myFunction, 1100);
-            console.log("clicked the button!");
+        tap_callback = CustomJS(args=dict(url=url, source=table.source), code="""
             function myFunction() {
                 window.open(url);
+            }
+            if (source.data['url'].length == 1) {
+                setTimeout(myFunction, 2000);
+                console.log("clicked the button!");
             }
             """)
         taptool.callback = tap_callback
