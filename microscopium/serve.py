@@ -297,12 +297,13 @@ def embedding(source, glyph_size=1, color_column='group'):
                    tooltips=tooltips_scatter)
     if color_column in source.data:
         group_names = pd.Series(source.data[color_column]).unique()
+        group_names.sort()
         my_colors = _palette(len(group_names))
         for i, group in enumerate(group_names):
             group_filter = GroupFilter(column_name=color_column, group=group)
             view = CDSView(source=source, filters=[group_filter])
             glyphs = embed.circle(x="x", y="y", source=source, view=view,
-                                  size=10, color=my_colors[i], legend=group)
+                                  size=4, color=my_colors[i], legend=group)
         embed.legend.location = "top_left"
         embed.legend.click_policy = "hide"
         embed.legend.background_fill_alpha = 0.5
