@@ -1,6 +1,8 @@
 .spyproject/
 .DS_Store
 
+/tmp/volume_preview.html
+
 *.py[cod]
 
 # C extensions

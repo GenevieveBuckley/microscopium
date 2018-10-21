@@ -242,9 +242,9 @@ def volume_rendering(image_filename, image_info, url_filename,
     output_filename = join(dirname(dirname(abspath(__file__))),
                            'tmp/'+url_filename)
     print(output_filename)
-    ipv.embed.embed_html('output_filename.html', ipv.gcc(), title="microscopium",
+    ipv.embed.embed_html(url_filename, ipv.gcc(), title=image_info,
                          offline=True, devmode=True)
-    print('actually saved something')
+    print('Saved html volume rendering.')
 
 def _column_range(series):
     minc = np.min(series)
@@ -438,7 +438,7 @@ def make_makedoc(filename, color_column=None):
                 update_image_canvas_multi(new.indices, data=dataframe,
                                           source=image_holder)
             update_table(new.indices, dataframe, table)
-            volume_rendering(image_filename, image_info, url_filename,
+            volume_rendering(image_filename, "microscopium", url_filename,
                              volume_rendering_transfer_functions)
 
         source.on_change('selected', load_selected)
