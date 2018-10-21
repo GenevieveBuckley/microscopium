@@ -438,7 +438,7 @@ def make_makedoc(filename, color_column=None):
                 update_image_canvas_multi(new.indices, data=dataframe,
                                           source=image_holder)
             update_table(new.indices, dataframe, table)
-            volume_rendering(image_filename, "microscopium", url_filename,
+            volume_rendering(image_filename, image_info, url_filename,
                              volume_rendering_transfer_functions)
 
         source.on_change('selected', load_selected)
