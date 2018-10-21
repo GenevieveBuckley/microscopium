@@ -242,7 +242,7 @@ def volume_rendering(image_filename, image_info, url_filename,
     output_filename = join(dirname(dirname(abspath(__file__))),
                            'tmp/'+url_filename)
     print(output_filename)
-    ipv.embed.embed_html(url_filename, ipv.gcc(), title=image_info,
+    ipv.embed.embed_html(output_filename, ipv.gcc(), title=image_info,
                          offline=True, devmode=True)
     print('Saved html volume rendering.')
 
@@ -447,7 +447,7 @@ def make_makedoc(filename, color_column=None):
             function myFunction() {
                 window.open(url);
             }
-            setTimeout(myFunction, 2000);
+            setTimeout(myFunction, 1000);
             """)
         taptool.callback = tap_callback
 
