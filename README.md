@@ -8,9 +8,14 @@ Unsupervised clustering and dataset exploration for high content screens.
 [![Gitter](https://img.shields.io/gitter/room/nwjs/nw.js.svg)](https://gitter.im/microscopium/microscopium?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## See microscopium in action
-![microscopium_bbbc021](https://user-images.githubusercontent.com/30920819/47262600-c2ed0c00-d538-11e8-8bd0-224ade21f8eb.gif)
 
-Public dataset BBBC021 from the [Broad Bioimage Benchmark Collection](https://data.broadinstitute.org/bbbc/BBBC021/) with t-SNE image embedding.
+Public dataset BBBC021 from the [Broad Bioimage Benchmark Collection](https://data.broadinstitute.org/bbbc/BBBC021/) with t-SNE image embedding:
+
+![microscopium_bbbc021](https://user-images.githubusercontent.com/30920819/47265048-999aa300-d56d-11e8-8089-9b075c074b9d.gif)
+
+Demonstration of 3D image features:
+
+![microscopium_3d-features](https://user-images.githubusercontent.com/30920819/47265066-c5b62400-d56d-11e8-92a9-b51ca2975435.gif)
 
 
 ## For developers
