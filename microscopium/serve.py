@@ -447,7 +447,7 @@ def make_makedoc(filename, color_column=None):
             function myFunction() {
                 window.open(url);
             }
-            setTimeout(myFunction, 1000);
+            setTimeout(myFunction, 2000);
             """)
         taptool.callback = tap_callback
 
