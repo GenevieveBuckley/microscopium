@@ -1,6 +1,6 @@
 """This module runs the bokeh server."""
 
-from os.path import dirname, join
+from os.path import dirname, join, abspath
 from math import ceil, sqrt
 from collections import namedtuple
 
@@ -213,7 +213,8 @@ def transfer_functions(colors):
     return transfer_functions
 
 
-def volume_rendering(image_filename, image_info, url, transfer_functions):
+def volume_rendering(image_filename, image_info, url_filename,
+                     transfer_functions):
     """3D volume rendering saved to html file with ipyvolume.
     Parameters
     ----------
@@ -238,8 +239,12 @@ def volume_rendering(image_filename, image_info, url, transfer_functions):
     ipv.pylab.style.axes_off()
     for channel, transfer_function in zip(image_3d, transfer_functions):
         ipv.volshow(channel, tf=transfer_function)
-    ipv.embed.embed_html('./tmp/'+url, ipv.gcc(), title=image_info)
-
+    output_filename = join(dirname(dirname(abspath(__file__))),
+                           'tmp/'+url_filename)
+    print(output_filename)
+    ipv.embed.embed_html('output_filename.html', ipv.gcc(), title="microscopium",
+                         offline=True, devmode=True)
+    print('actually saved something')
 
 def _column_range(series):
     minc = np.min(series)
@@ -417,8 +422,8 @@ def make_makedoc(filename, color_column=None):
         image_plot, image_holder = selected_images()
         table = empty_table(dataframe)
         controls = [button_save_table(table), button_print_page()]
-        url_base = "volume_preview.html"
-        url = "http://localhost:5007/" + url_base
+        url_filename = "volume_preview.html"
+        url = "http://localhost:5007/" + url_filename
 
         def load_selected(attr, old, new):
             """Update images and table to display selected data."""
@@ -433,7 +438,7 @@ def make_makedoc(filename, color_column=None):
                 update_image_canvas_multi(new.indices, data=dataframe,
                                           source=image_holder)
             update_table(new.indices, dataframe, table)
-            volume_rendering(image_filename, image_info, url_base,
+            volume_rendering(image_filename, image_info, url_filename,
                              volume_rendering_transfer_functions)
 
         source.on_change('selected', load_selected)
