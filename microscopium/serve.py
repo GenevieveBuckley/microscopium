@@ -432,12 +432,12 @@ def make_makedoc(filename, color_column=None):
             if len(new.indices) == 1:  # could be empty selection
                 update_image_canvas_single(new.indices[0], data=dataframe,
                                            source=image_holder)
-                image_filename = dataframe['path'].iloc[new.indices[0]]
-                image_info = dataframe['info'].iloc[new.indices[0]]
             elif len(new.indices) > 1:
                 update_image_canvas_multi(new.indices, data=dataframe,
                                           source=image_holder)
             update_table(new.indices, dataframe, table)
+            image_filename = dataframe['path'].iloc[new.indices[0]]
+            image_info = dataframe['info'].iloc[new.indices[0]]
             volume_rendering(image_filename, image_info, url_filename,
                              volume_rendering_transfer_functions)
 
@@ -445,7 +445,7 @@ def make_makedoc(filename, color_column=None):
 
         tap_callback = CustomJS(args=dict(url=url), code="""
             function myFunction() {
-                window.open(url);
+                window.open("http://localhost:5007/volume_preview_offline.html");
             }
             setTimeout(myFunction, 2000);
             """)
