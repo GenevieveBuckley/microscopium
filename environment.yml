@@ -18,6 +18,7 @@ dependencies:
 - six
 - toolz
 - imageio
+- selenium
 - pip:
   - coverage>=4.0
   - pytest>=2.8
