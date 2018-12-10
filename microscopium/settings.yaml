@@ -1,0 +1,11 @@
+clustering:
+- PCA:
+  - x
+  - y
+color_columns:
+  continuous_data:
+  - x
+  - y
+  discrete_data:
+  - group
+
