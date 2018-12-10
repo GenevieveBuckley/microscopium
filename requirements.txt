@@ -16,3 +16,5 @@ sh
 coverage
 pytest-cov
 imageio
+pyyaml
+
